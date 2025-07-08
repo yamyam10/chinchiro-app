@@ -1,0 +1,1 @@
+C:\HAL\Flutter_App\tintiro_app\build\app\intermediates\cxx\Debug\3j58661w\obj\arm64-v8a

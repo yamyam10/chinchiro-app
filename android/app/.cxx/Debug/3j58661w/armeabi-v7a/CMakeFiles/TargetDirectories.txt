@@ -1,0 +1,2 @@
+C:/HAL/Flutter_App/tintiro_app/android/app/.cxx/Debug/3j58661w/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/HAL/Flutter_App/tintiro_app/android/app/.cxx/Debug/3j58661w/armeabi-v7a/CMakeFiles/rebuild_cache.dir
