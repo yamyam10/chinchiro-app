@@ -35,6 +35,13 @@ class _MyHomePageState extends State<MyHomePage> {
   int _rollCount = 0;
   bool _gameOver = false;
   bool _isRolling = false;
+  bool _playerTurnStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _playCpuTurn();
+  }
 
   Future<void> _animateRoll(bool isPlayer) async {
     _isRolling = true;
@@ -52,30 +59,37 @@ class _MyHomePageState extends State<MyHomePage> {
     _isRolling = false;
   }
 
-  Future<void> _playGame() async {
+  Future<void> _playCpuTurn() async {
     if (_gameOver || _isRolling) return;
     setState(() {
       _winner = '';
+      _playerResult = 'サイコロを振ってみよう！';
+      _playerTurnStarted = false;
     });
 
-    // CPU先に振る
     for (int i = 0; i < 3; i++) {
       await _animateRoll(false);
       _cpuResult = _judgeResult(_cpuDiceValues.cast<int>());
       if (_cpuResult != '目無し') break;
     }
+  }
 
-    // プレイヤー振る
-    for (int i = 0; i < 3; i++) {
-      await _animateRoll(true);
-      _playerResult = _judgeResult(_playerDiceValues.cast<int>());
-      _rollCount++;
-      if (_playerResult != '目無し' || _rollCount >= 3) break;
-    }
+  Future<void> _playPlayerTurn() async {
+    if (_gameOver || _isRolling) return;
 
     setState(() {
-      _gameOver = true;
-      _decideWinner();
+      _playerTurnStarted = true;
+    });
+
+    await _animateRoll(true);
+    _playerResult = _judgeResult(_playerDiceValues.cast<int>());
+    _rollCount++;
+
+    setState(() {
+      if (_playerResult != '目無し' || _rollCount >= 3) {
+        _gameOver = true;
+        _decideWinner();
+      }
     });
   }
 
@@ -129,7 +143,9 @@ class _MyHomePageState extends State<MyHomePage> {
       _winner = '';
       _rollCount = 0;
       _gameOver = false;
+      _playerTurnStarted = false;
     });
+    _playCpuTurn();
   }
 
   Widget _buildDice(int? value) {
@@ -159,17 +175,19 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: (_gameOver || _isRolling)
-          ? FloatingActionButton(
-              onPressed: _resetGame,
-              tooltip: 'リセット',
-              child: const Icon(Icons.refresh),
-            )
-          : FloatingActionButton(
-              onPressed: _playGame,
-              tooltip: 'サイコロを振る',
-              child: const Icon(Icons.casino),
-            ),
+      floatingActionButton: _isRolling || _gameOver || !_playerTurnStarted && _cpuResult == ''
+          ? null
+          : _gameOver
+              ? FloatingActionButton(
+                  onPressed: _resetGame,
+                  tooltip: 'リセット',
+                  child: const Icon(Icons.refresh),
+                )
+              : FloatingActionButton(
+                  onPressed: _playPlayerTurn,
+                  tooltip: 'サイコロを振る',
+                  child: const Icon(Icons.casino),
+                ),
     );
   }
 
