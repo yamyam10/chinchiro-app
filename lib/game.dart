@@ -1,6 +1,21 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
+void main() => runApp(const MyApp());
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(),
+      home: const MyHomePage(title: 'チンチロアプリ'),
+    );
+  }
+}
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -12,46 +27,62 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final Random _random = Random();
-  List<int> _cpuDiceValues = [1, 1, 1];
-  List<int> _playerDiceValues = [1, 1, 1];
+  List<int?> _cpuDiceValues = [null, null, null];
+  List<int?> _playerDiceValues = [null, null, null];
   String _cpuResult = '';
   String _playerResult = 'サイコロを振ってみよう！';
   String _winner = '';
   int _rollCount = 0;
   bool _gameOver = false;
+  bool _isRolling = false;
 
-  void _cpuRollDice() {
-    for (int i = 0; i < 3; i++) {
+  Future<void> _animateRoll(bool isPlayer) async {
+    _isRolling = true;
+    for (int i = 0; i < 10; i++) {
+      await Future.delayed(const Duration(milliseconds: 80));
       setState(() {
-        _cpuDiceValues = List.generate(3, (_) => _random.nextInt(6) + 1);
-        _cpuResult = _judgeResult(_cpuDiceValues);
-        if (_cpuResult != '目無し') {
-          return;
+        final roll = List.generate(3, (_) => _random.nextInt(6) + 1);
+        if (isPlayer) {
+          _playerDiceValues = roll;
+        } else {
+          _cpuDiceValues = roll;
         }
       });
     }
+    _isRolling = false;
   }
 
-  void _playerRollDice() {
-    if (_gameOver) return;
+  Future<void> _playGame() async {
+    if (_gameOver || _isRolling) return;
     setState(() {
-      _playerDiceValues = List.generate(3, (_) => _random.nextInt(6) + 1);
-      _playerResult = _judgeResult(_playerDiceValues);
-      _rollCount++;
+      _winner = '';
+    });
 
-      if (_playerResult != '目無し' || _rollCount >= 3) {
-        _gameOver = true;
-        _decideWinner();
-      }
+    // CPU先に振る
+    for (int i = 0; i < 3; i++) {
+      await _animateRoll(false);
+      _cpuResult = _judgeResult(_cpuDiceValues.cast<int>());
+      if (_cpuResult != '目無し') break;
+    }
+
+    // プレイヤー振る
+    for (int i = 0; i < 3; i++) {
+      await _animateRoll(true);
+      _playerResult = _judgeResult(_playerDiceValues.cast<int>());
+      _rollCount++;
+      if (_playerResult != '目無し' || _rollCount >= 3) break;
+    }
+
+    setState(() {
+      _gameOver = true;
+      _decideWinner();
     });
   }
 
   String _judgeResult(List<int> dice) {
     dice.sort();
     if (dice[0] == dice[1] && dice[1] == dice[2]) {
-      if (dice[0] == 1) {
-        return 'ピンゾロ';
-      }
+      if (dice[0] == 1) return 'ピンゾロ';
       return 'アラシ';
     } else if (dice[0] == dice[1] || dice[1] == dice[2]) {
       int remaining = dice[0] == dice[1] ? dice[2] : dice[0];
@@ -66,19 +97,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _decideWinner() {
     final rank = [
-      'ピンゾロ',
-      'アラシ',
-      'シゴロ',
-      '6の目',
-      '5の目',
-      '4の目',
-      '3の目',
-      '2の目',
-      '1の目',
-      '目無し',
-      'ヒフミ',
+      'ピンゾロ', 'アラシ', 'シゴロ', '6の目', '5の目', '4の目',
+      '3の目', '2の目', '1の目', '目無し', 'ヒフミ'
     ];
-
     int cpuRank = rank.indexWhere((r) => _cpuResult.contains(r));
     int playerRank = rank.indexWhere((r) => _playerResult.contains(r));
 
@@ -87,9 +108,8 @@ class _MyHomePageState extends State<MyHomePage> {
     } else if (playerRank > cpuRank) {
       _winner = 'CPUの勝ち！';
     } else {
-      int cpuSum = _cpuDiceValues.reduce((a, b) => a + b);
-      int playerSum = _playerDiceValues.reduce((a, b) => a + b);
-      
+      int cpuSum = _cpuDiceValues.cast<int>().reduce((a, b) => a + b);
+      int playerSum = _playerDiceValues.cast<int>().reduce((a, b) => a + b);
       if (playerSum > cpuSum) {
         _winner = 'あなたの勝ち！';
       } else if (playerSum < cpuSum) {
@@ -102,18 +122,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _resetGame() {
     setState(() {
-      _cpuDiceValues = [1, 1, 1];
-      _playerDiceValues = [1, 1, 1];
+      _cpuDiceValues = [null, null, null];
+      _playerDiceValues = [null, null, null];
       _cpuResult = '';
       _playerResult = 'サイコロを振ってみよう！';
       _winner = '';
       _rollCount = 0;
       _gameOver = false;
-      _cpuRollDice();
     });
   }
 
-  Widget _buildDice(int value) {
+  Widget _buildDice(int? value) {
     return DiceDots(value: value);
   }
 
@@ -140,21 +159,21 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: _gameOver
+      floatingActionButton: (_gameOver || _isRolling)
           ? FloatingActionButton(
               onPressed: _resetGame,
               tooltip: 'リセット',
               child: const Icon(Icons.refresh),
             )
           : FloatingActionButton(
-              onPressed: _playerRollDice,
+              onPressed: _playGame,
               tooltip: 'サイコロを振る',
               child: const Icon(Icons.casino),
             ),
     );
   }
 
-  Widget _buildPlayerSection(String player, List<int> diceValues, String result) {
+  Widget _buildPlayerSection(String player, List<int?> diceValues, String result) {
     return Column(
       children: [
         CircleAvatar(
@@ -177,11 +196,14 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class DiceDots extends StatelessWidget {
-  final int value;
+  final int? value;
   const DiceDots({super.key, required this.value});
 
   @override
   Widget build(BuildContext context) {
+    if (value == null) {
+      return const SizedBox(width: 80, height: 80);
+    }
     List<List<int>> dotPositions = [
       [],
       [4],
@@ -207,7 +229,9 @@ class DiceDots extends StatelessWidget {
           return Container(
             margin: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: dotPositions[value].contains(index) ? (value == 1 ? Colors.red : Colors.black) : Colors.transparent,
+              color: dotPositions[value!].contains(index)
+                  ? (value == 1 ? Colors.red : Colors.black)
+                  : Colors.transparent,
               shape: BoxShape.circle,
             ),
           );
