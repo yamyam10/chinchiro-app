@@ -1,16 +1,29 @@
-# tintiro_app
+# チンチロアプリ
 
-A new Flutter project.
+このアプリは、サイコロを使った日本の伝統的なゲーム「チンチロリン」を手軽に楽しめるFlutter製アプリです。  
+CPUと対戦し、3つのサイコロを振って役を競い合います。
 
-## Getting Started
+## 主な機能
 
-This project is a starting point for a Flutter application.
+- サイコロのアニメーション表示
+- 役判定（ピンゾロ、アラシ、シゴロ、ヒフミ、○の目、目無し など）
+- 勝敗判定と結果表示
+- 再戦ボタンですぐにもう一度プレイ可能
 
-A few resources to get you started if this is your first Flutter project:
+## 遊び方
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+1. アプリを起動すると、CPUが先にサイコロを振ります。
+2. 「サイコロを振る」ボタンを押して自分のターンを開始します。
+3. 役が出るか、3回までサイコロを振ることができます。
+4. 両者の役を比較して勝敗が決まります。
+5. 「再戦」ボタンで何度でも遊べます。
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 開発・実行方法
+
+1. Flutterがインストールされた環境で本リポジトリをクローン
+2. プロジェクトディレクトリで以下を実行
+
+```sh
+flutter pub get
+flutter run
+```
