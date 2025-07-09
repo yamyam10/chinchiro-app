@@ -168,26 +168,34 @@ class _MyHomePageState extends State<MyHomePage> {
             _buildPlayerSection('親', _playerDiceValues, _playerResult),
             const SizedBox(height: 20),
             if (_gameOver)
-              Text(
-                _winner,
-                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.amber),
+              Column(
+                children: [
+                  Text(
+                    _winner,
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.amber),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _resetGame,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    ),
+                    child: const Text('再戦', style: TextStyle(fontSize: 20)),
+                  ),
+                ],
               ),
           ],
         ),
       ),
-      floatingActionButton: _isRolling || _gameOver || !_playerTurnStarted && _cpuResult == ''
+      floatingActionButton: _isRolling || _gameOver || (!_playerTurnStarted && _cpuResult == '')
           ? null
-          : _gameOver
-              ? FloatingActionButton(
-                  onPressed: _resetGame,
-                  tooltip: 'リセット',
-                  child: const Icon(Icons.refresh),
-                )
-              : FloatingActionButton(
-                  onPressed: _playPlayerTurn,
-                  tooltip: 'サイコロを振る',
-                  child: const Icon(Icons.casino),
-                ),
+          : FloatingActionButton(
+              onPressed: _playPlayerTurn,
+              tooltip: 'サイコロを振る',
+              child: const Icon(Icons.casino),
+            ),
     );
   }
 
